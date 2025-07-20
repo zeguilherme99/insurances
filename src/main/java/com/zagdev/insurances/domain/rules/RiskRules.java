@@ -29,7 +29,6 @@ public class RiskRules {
                 case AUTO -> insuredAmount.compareTo(BigDecimal.valueOf(75_000)) <= 0;
                 default -> insuredAmount.compareTo(BigDecimal.valueOf(55_000)) <= 0;
             };
-            default -> false;
         };
     }
 }

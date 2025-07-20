@@ -61,30 +61,35 @@ public class PolicyDTO {
     }
 
     public void markAsPending() {
-        if (status == PolicyStatus.VALIDATED) {
-            transitionTo(PolicyStatus.PENDING);
+        if (status != PolicyStatus.VALIDATED) {
+            throw new UnsupportedOperationException("Policy só pode ser marcada como pendente quando está VALIDATED");
         }
+        transitionTo(PolicyStatus.PENDING);
     }
 
     public void approve() {
-        if (status == PolicyStatus.PENDING) {
-            transitionTo(PolicyStatus.APPROVED);
-            this.finishedAt = Instant.now();
+        if (status != PolicyStatus.PENDING) {
+            throw new UnsupportedOperationException("Policy só pode ser aprovada quando está PENDING");
         }
+
+        transitionTo(PolicyStatus.APPROVED);
+        this.finishedAt = Instant.now();
     }
 
     public void reject() {
-        if (status == PolicyStatus.PENDING || status == PolicyStatus.VALIDATED) {
-            transitionTo(PolicyStatus.REJECTED);
-            this.finishedAt = Instant.now();
+        if (status != PolicyStatus.PENDING && status != PolicyStatus.VALIDATED) {
+            throw new UnsupportedOperationException("Policy só pode ser rejeitada se estiver PENDING ou VALIDATED");
         }
+        transitionTo(PolicyStatus.REJECTED);
+        this.finishedAt = Instant.now();
     }
 
     public void cancel() {
-        if (status != PolicyStatus.APPROVED && status != PolicyStatus.REJECTED && status != PolicyStatus.CANCELLED) {
-            transitionTo(PolicyStatus.CANCELLED);
-            this.finishedAt = Instant.now();
+        if (status == PolicyStatus.APPROVED || status == PolicyStatus.REJECTED || status == PolicyStatus.CANCELLED) {
+            throw new UnsupportedOperationException("Policy não pode ser cancelada neste status");
         }
+        transitionTo(PolicyStatus.CANCELLED);
+        this.finishedAt = Instant.now();
     }
 
     private void transitionTo(PolicyStatus newStatus) {
