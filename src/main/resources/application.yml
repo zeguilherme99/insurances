@@ -1,21 +1,16 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/policydb
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/policiesdbt
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
-  flyway:
-    enabled: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 server:
   port: 8080
