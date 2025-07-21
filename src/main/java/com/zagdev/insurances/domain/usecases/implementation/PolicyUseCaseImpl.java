@@ -80,4 +80,20 @@ public class PolicyUseCaseImpl implements PolicyUseCase {
         logger.info("UseCase: Policy [{}] rejected successfully (status: [{}])", dto.getId(), dto.getStatus());
         return dto;
     }
+
+    @Override
+    public PolicyDTO setPaymentConfirmed(UUID requestId) throws DataNotFoundException {
+        logger.info("UseCase: Requested to confirm payment policy [{}]", requestId);
+        PolicyDTO dto = policyService.setPaymentConfirmed(requestId);
+        logger.info("UseCase: Policy [{}] confirmed payment successfully", dto.getId());
+        return dto;
+    }
+
+    @Override
+    public PolicyDTO setSubscriptionAuthorized(UUID requestId) throws DataNotFoundException {
+        logger.info("UseCase: Requested to authorize subscription policy [{}]", requestId);
+        PolicyDTO dto = policyService.setSubscriptionAuthorized(requestId);
+        logger.info("UseCase: Policy [{}] subscription authorized successfully", dto.getId());
+        return dto;
+    }
 }

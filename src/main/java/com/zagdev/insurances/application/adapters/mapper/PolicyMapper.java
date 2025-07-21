@@ -25,26 +25,26 @@ public class PolicyMapper {
 
     public static PolicyResponse toResponse(PolicyDTO policy) {
         PolicyResponse dto = new PolicyResponse();
-        dto.id = policy.getId();
-        dto.customerId = policy.getCustomerId();
-        dto.productId = policy.getProductId();
-        dto.category = policy.getCategory().name();
-        dto.salesChannel = policy.getSalesChannel();
-        dto.paymentMethod = policy.getPaymentMethod();
-        dto.status = policy.getStatus();
-        dto.createdAt = policy.getCreatedAt();
-        dto.finishedAt = policy.getFinishedAt();
-        dto.totalMonthlyPremiumAmount = policy.getTotalMonthlyPremium();
-        dto.insuredAmount = policy.getInsuredAmount();
-        dto.coverages = policy.getCoverages();
-        dto.assistances = policy.getAssistances();
+        dto.setId(policy.getId());
+        dto.setCustomerId(policy.getCustomerId());
+        dto.setProductId(policy.getProductId());
+        dto.setCategory(policy.getCategory().name());
+        dto.setSalesChannel(policy.getSalesChannel());
+        dto.setPaymentMethod(policy.getPaymentMethod());
+        dto.setStatus(policy.getStatus());
+        dto.setCreatedAt(policy.getCreatedAt());
+        dto.setFinishedAt(policy.getFinishedAt());
+        dto.setTotalMonthlyPremiumAmount(policy.getTotalMonthlyPremium());
+        dto.setInsuredAmount(policy.getInsuredAmount());
+        dto.setCoverages(policy.getCoverages());
+        dto.setAssistances(policy.getAssistances());
 
-        dto.history = policy.getHistory().stream().map(history -> {
+        dto.setHistory(policy.getHistory().stream().map(history -> {
             PolicyResponse.StatusHistoryDTO h = new PolicyResponse.StatusHistoryDTO();
-            h.status = history.getStatus();
-            h.timestamp = history.getTimestamp();
+            h.setStatus(history.getStatus());
+            h.setTimestamp(history.getTimestamp());
             return h;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toList()));
 
         return dto;
     }

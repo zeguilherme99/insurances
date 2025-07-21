@@ -23,6 +23,8 @@ public class PolicyDTO {
     private InsuranceCategory category;
     private String salesChannel;
     private String paymentMethod;
+    private Boolean paymentConfirmed;
+    private Boolean subscriptionAuthorized;
     private BigDecimal totalMonthlyPremium;
     private BigDecimal insuredAmount;
     private Map<String, BigDecimal> coverages;
@@ -41,6 +43,8 @@ public class PolicyDTO {
         this.category = category;
         this.salesChannel = salesChannel;
         this.paymentMethod = paymentMethod;
+        this.paymentConfirmed = false;
+        this.subscriptionAuthorized = false;
         this.totalMonthlyPremium = totalMonthlyPremium;
         this.insuredAmount = insuredAmount;
         this.coverages = coverages;
@@ -154,6 +158,22 @@ public class PolicyDTO {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public Boolean getPaymentConfirmed() {
+        return paymentConfirmed;
+    }
+
+    public void setPaymentConfirmed(Boolean paymentConfirmed) {
+        this.paymentConfirmed = paymentConfirmed;
+    }
+
+    public Boolean getSubscriptionAuthorized() {
+        return subscriptionAuthorized;
+    }
+
+    public void setSubscriptionAuthorized(Boolean subscriptionAuthorized) {
+        this.subscriptionAuthorized = subscriptionAuthorized;
     }
 
     public BigDecimal getTotalMonthlyPremium() {

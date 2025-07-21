@@ -16,6 +16,8 @@ public class PolicyMapper {
         doc.setCategory(domain.getCategory());
         doc.setSalesChannel(domain.getSalesChannel());
         doc.setPaymentMethod(domain.getPaymentMethod());
+        doc.setPaymentConfirmed(domain.getPaymentConfirmed());
+        doc.setSubscriptionAuthorized(domain.getSubscriptionAuthorized());
         doc.setTotalMonthlyPremium(domain.getTotalMonthlyPremium());
         doc.setInsuredAmount(domain.getInsuredAmount());
         doc.setCoverages(domain.getCoverages());
@@ -52,6 +54,8 @@ public class PolicyMapper {
         domain.setStatus(doc.getStatus());
         domain.setCreatedAt(doc.getCreatedAt());
         domain.setFinishedAt(doc.getFinishedAt());
+        domain.setPaymentConfirmed(doc.getPaymentConfirmed());
+        domain.setSubscriptionAuthorized(doc.getSubscriptionAuthorized());
 
         var history = doc.getHistory().stream().map(h ->
                 new StatusChange(h.getStatus(), h.getTimestamp())

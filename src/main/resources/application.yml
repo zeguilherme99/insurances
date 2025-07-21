@@ -14,3 +14,16 @@ spring:
     property-naming-strategy: SNAKE_CASE
 server:
   port: 8080
+
+fraud-api:
+  url: http://localhost:8081
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+fraud-api:
+  url: http://localhost:18081

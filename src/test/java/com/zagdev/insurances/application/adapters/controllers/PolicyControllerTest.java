@@ -96,18 +96,6 @@ class PolicyControllerTest {
     }
 
     @Test
-    void shouldApprovePolicy() throws Exception {
-        UUID id = UUID.randomUUID();
-        PolicyDTO dto = buildPolicyDTO(id, PolicyStatus.APPROVED);
-
-        when(policyUseCase.approve(id)).thenReturn(dto);
-
-        mockMvc.perform(patch("/api/v1/policies/" + id + "/approve"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
-    }
-
-    @Test
     void shouldCancelPolicy() throws Exception {
         UUID id = UUID.randomUUID();
         PolicyDTO dto = buildPolicyDTO(id, PolicyStatus.CANCELLED);

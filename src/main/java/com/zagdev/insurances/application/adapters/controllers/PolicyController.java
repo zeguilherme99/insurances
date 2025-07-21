@@ -47,14 +47,6 @@ public class PolicyController {
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
-    @PatchMapping("/{id}/approve")
-    public ResponseEntity<PolicyResponse> approve(@PathVariable UUID id) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
-        logger.info("Controller: Received request to approve policy [{}]", id);
-        PolicyDTO policy = policyUseCase.approve(id);
-        logger.info("Controller: Policy [{}] approved (status: [{}])", policy.getId(), policy.getStatus());
-        return ResponseEntity.ok(PolicyMapper.toResponse(policy));
-    }
-
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<PolicyResponse> cancel(@PathVariable UUID id) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         logger.info("Controller: Received request to cancel policy [{}]", id);

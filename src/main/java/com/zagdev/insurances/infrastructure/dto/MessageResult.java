@@ -2,7 +2,7 @@ package com.zagdev.insurances.infrastructure.dto;
 
 import java.util.UUID;
 
-public class PaymentResult {
+public class MessageResult {
 
     private UUID policyId;
     private boolean success;

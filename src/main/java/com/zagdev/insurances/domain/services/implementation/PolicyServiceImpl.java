@@ -46,7 +46,7 @@ public class PolicyServiceImpl implements PolicyService {
 
         logStatusTransition(requestId, previousStatus, request.getStatus());
 
-        return save(request);
+        return saveAndPublish(request);
     }
 
     @Override
@@ -59,13 +59,13 @@ public class PolicyServiceImpl implements PolicyService {
 
         logStatusTransition(requestId, previousStatus, request.getStatus());
 
-        return save(request);
+        return saveAndPublish(request);
     }
 
     @Override
     public PolicyDTO create(PolicyDTO request) throws InvalidDataException, UnexpectedErrorException {
         logger.info("Service: Creating new policy for customer [{}]", request.getCustomerId());
-        PolicyDTO result = save(request);
+        PolicyDTO result = saveAndPublish(request);
         logger.info("Service: Policy created with id [{}] for customer [{}] (status: [{}])",
                 result.getId(), result.getCustomerId(), result.getStatus());
         return result;
@@ -107,7 +107,7 @@ public class PolicyServiceImpl implements PolicyService {
 
         logger.info("Service: Policy [{}] validation process finished with status [{}]", requestId, request.getStatus());
 
-        return save(request);
+        return saveAndPublish(request);
     }
 
     @Override
@@ -119,7 +119,27 @@ public class PolicyServiceImpl implements PolicyService {
         request.reject();
 
         logStatusTransition(requestId, previousStatus, request.getStatus());
-        return save(request);
+        return saveAndPublish(request);
+    }
+
+    @Override
+    public PolicyDTO setPaymentConfirmed(UUID requestId) throws DataNotFoundException {
+        logger.info("Service: Confirming payment for policy [{}]", requestId);
+        PolicyDTO policyDTO = getById(requestId);
+        policyDTO.setPaymentConfirmed(true);
+        PolicyDTO updatedDTO = save(policyDTO);
+        logger.info("Service: Payment confirmed for policy [{}]", requestId);
+        return updatedDTO;
+    }
+
+    @Override
+    public PolicyDTO setSubscriptionAuthorized(UUID requestId) throws DataNotFoundException {
+        logger.info("Service: Setting subscription authorized for policy [{}]", requestId);
+        PolicyDTO policyDTO = getById(requestId);
+        policyDTO.setSubscriptionAuthorized(true);
+        PolicyDTO updatedDTO = save(policyDTO);
+        logger.info("Service: Subscription authorized for policy [{}]", requestId);
+        return updatedDTO;
     }
 
     private PolicyDTO getById(UUID id) throws DataNotFoundException {
@@ -131,8 +151,13 @@ public class PolicyServiceImpl implements PolicyService {
         return PolicyMapper.toDomain(policy);
     }
 
-    private PolicyDTO save(PolicyDTO request) throws InvalidDataException, UnexpectedErrorException {
+    private PolicyDTO saveAndPublish(PolicyDTO request) throws InvalidDataException, UnexpectedErrorException {
         publishEvent(request);
+        Policy policy = repository.save(PolicyMapper.toDocument(request));
+        return PolicyMapper.toDomain(policy);
+    }
+
+    private PolicyDTO save(PolicyDTO request) {
         Policy policy = repository.save(PolicyMapper.toDocument(request));
         return PolicyMapper.toDomain(policy);
     }

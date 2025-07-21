@@ -17,4 +17,6 @@ public interface PolicyService {
     List<PolicyDTO> findByCustomerId(UUID id);
     PolicyDTO validate(UUID requestId) throws InvalidDataException, DataNotFoundException, UnexpectedErrorException;
     PolicyDTO reject(UUID requestId) throws InvalidDataException, DataNotFoundException, UnexpectedErrorException;
+    PolicyDTO setPaymentConfirmed(UUID requestId) throws DataNotFoundException;
+    PolicyDTO setSubscriptionAuthorized(UUID requestId) throws DataNotFoundException;
 }

@@ -2,8 +2,9 @@ package com.zagdev.insurances.infrastructure.implementation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zagdev.insurances.domain.dto.PolicyDTO;
 import com.zagdev.insurances.domain.usecases.PolicyUseCase;
-import com.zagdev.insurances.infrastructure.dto.PaymentResult;
+import com.zagdev.insurances.infrastructure.dto.MessageResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -31,16 +32,19 @@ class RabbitMqPaymentListenerTest {
     }
 
     @Test
-    void shouldApproveWhenPaymentIsSuccess() throws Exception {
+    void shouldApproveWhenPaymentAndSubscriptionIsSuccess() throws Exception {
         UUID policyId = UUID.randomUUID();
         String payload = "{\"policyId\": \"" + policyId + "\", \"success\": true}";
 
-        PaymentResult paymentResult = new PaymentResult();
-        paymentResult.setPolicyId(policyId);
-        paymentResult.setSuccess(true);
+        MessageResult messageResult = new MessageResult();
+        messageResult.setPolicyId(policyId);
+        messageResult.setSuccess(true);
 
-        when(objectMapper.readValue(payload, PaymentResult.class)).thenReturn(paymentResult);
+        PolicyDTO policyDTO = new PolicyDTO();
+        policyDTO.setSubscriptionAuthorized(true);
 
+        when(objectMapper.readValue(payload, MessageResult.class)).thenReturn(messageResult);
+        when(policyUseCase.setPaymentConfirmed(eq(policyId))).thenReturn(policyDTO);
         listener.handlePaymentResult(payload);
 
         verify(policyUseCase).approve(policyId);
@@ -52,11 +56,11 @@ class RabbitMqPaymentListenerTest {
         UUID policyId = UUID.randomUUID();
         String payload = "{\"policyId\": \"" + policyId + "\", \"success\": false}";
 
-        PaymentResult paymentResult = new PaymentResult();
-        paymentResult.setPolicyId(policyId);
-        paymentResult.setSuccess(false);
+        MessageResult messageResult = new MessageResult();
+        messageResult.setPolicyId(policyId);
+        messageResult.setSuccess(false);
 
-        when(objectMapper.readValue(payload, PaymentResult.class)).thenReturn(paymentResult);
+        when(objectMapper.readValue(payload, MessageResult.class)).thenReturn(messageResult);
 
         listener.handlePaymentResult(payload);
 
@@ -68,11 +72,61 @@ class RabbitMqPaymentListenerTest {
     void shouldThrowWhenDeserializationFails() throws Exception {
         String payload = "INVALID_JSON";
 
-        when(objectMapper.readValue(payload, PaymentResult.class))
+        when(objectMapper.readValue(payload, MessageResult.class))
                 .thenThrow(new JsonProcessingException("Erro de parsing!") {});
 
         assertThrows(JsonProcessingException.class,
                 () -> listener.handlePaymentResult(payload));
+
+        verifyNoInteractions(policyUseCase);
+    }
+
+    @Test
+    void shouldApproveWhenSubscriptionAndPaymentIsSuccess() throws Exception {
+        UUID policyId = UUID.randomUUID();
+        String payload = "{\"policyId\": \"" + policyId + "\", \"success\": true}";
+
+        MessageResult messageResult = new MessageResult();
+        messageResult.setPolicyId(policyId);
+        messageResult.setSuccess(true);
+
+        PolicyDTO policyDTO = new PolicyDTO();
+        policyDTO.setPaymentConfirmed(true);
+
+        when(objectMapper.readValue(payload, MessageResult.class)).thenReturn(messageResult);
+        when(policyUseCase.setSubscriptionAuthorized(eq(policyId))).thenReturn(policyDTO);
+        listener.handleSubscriptionResult(payload);
+
+        verify(policyUseCase).approve(policyId);
+        verify(policyUseCase, never()).reject(any());
+    }
+
+    @Test
+    void shouldRejectWhenSubscriptionIsNotSuccess() throws Exception {
+        UUID policyId = UUID.randomUUID();
+        String payload = "{\"policyId\": \"" + policyId + "\", \"success\": false}";
+
+        MessageResult messageResult = new MessageResult();
+        messageResult.setPolicyId(policyId);
+        messageResult.setSuccess(false);
+
+        when(objectMapper.readValue(payload, MessageResult.class)).thenReturn(messageResult);
+
+        listener.handleSubscriptionResult(payload);
+
+        verify(policyUseCase).reject(policyId);
+        verify(policyUseCase, never()).approve(any());
+    }
+
+    @Test
+    void shouldThrowWhenDeserializationFailsSubscription() throws Exception {
+        String payload = "INVALID_JSON";
+
+        when(objectMapper.readValue(payload, MessageResult.class))
+                .thenThrow(new JsonProcessingException("Erro de parsing!") {});
+
+        assertThrows(JsonProcessingException.class,
+                () -> listener.handleSubscriptionResult(payload));
 
         verifyNoInteractions(policyUseCase);
     }

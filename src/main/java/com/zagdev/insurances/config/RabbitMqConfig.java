@@ -48,6 +48,19 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public Queue subscriptionResultQueue() {
+        return QueueBuilder.durable("subscription-result-queue")
+                .deadLetterExchange("")
+                .deadLetterRoutingKey("subscription-result-queue.dlq")
+                .build();
+    }
+
+    @Bean
+    public Queue subscriptionResultDlq() {
+        return QueueBuilder.durable("subscription-result-queue.dlq").build();
+    }
+
+    @Bean
     public Binding binding(Queue statusQueue, TopicExchange policyExchange) {
         return BindingBuilder.bind(statusQueue).to(policyExchange).with("policy.status.changed");
     }
