@@ -8,6 +8,9 @@ import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
 import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.exceptions.UnexpectedErrorException;
 import com.zagdev.insurances.domain.usecases.PolicyUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/policies")
+@Tag(name = "Policy", description = "Policy management API")
 public class PolicyController {
 
     private final PolicyUseCase policyUseCase;
@@ -30,6 +34,15 @@ public class PolicyController {
         this.policyUseCase = policyUseCase;
     }
 
+    @Operation(
+            summary = "Create policy",
+            description = "Create new policy",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Policy created"),
+                    @ApiResponse(responseCode = "400", description = "Invalid data"),
+                    @ApiResponse(responseCode = "500", description = "Unexpected error")
+            }
+    )
     @PostMapping
     public ResponseEntity<PolicyResponse> create(@RequestBody PolicyRequest dto) throws InvalidDataException, UnexpectedErrorException {
         logger.info("Controller: Received request to create policy for customer [{}]", dto.getCustomerId());
@@ -39,6 +52,15 @@ public class PolicyController {
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
+    @Operation(
+            summary = "Validate Policy",
+            description = "Validate policy by ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Policy valitated"),
+                    @ApiResponse(responseCode = "400", description = "Invalid Data"),
+                    @ApiResponse(responseCode = "500", description = "Unexpected error")
+            }
+    )
     @PatchMapping("/{id}/validate")
     public ResponseEntity<PolicyResponse> validate(@Valid @PathVariable UUID id) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         logger.info("Controller: Received request to validate policy [{}]", id);
@@ -47,6 +69,15 @@ public class PolicyController {
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
+    @Operation(
+            summary = "Cancel Policy",
+            description = "Cancel policy by id",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Policy cancelled"),
+                    @ApiResponse(responseCode = "400", description = "Invalid Data"),
+                    @ApiResponse(responseCode = "500", description = "Unexpected error")
+            }
+    )
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<PolicyResponse> cancel(@PathVariable UUID id) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         logger.info("Controller: Received request to cancel policy [{}]", id);
@@ -55,6 +86,15 @@ public class PolicyController {
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
+    @Operation(
+            summary = "Get policy by ID",
+            description = "Get policy by ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Policy found"),
+                    @ApiResponse(responseCode = "400", description = "Invalid Data"),
+                    @ApiResponse(responseCode = "500", description = "Unexpected error")
+            }
+    )
     @GetMapping("/{id}")
     public ResponseEntity<PolicyResponse> getById(@Valid @PathVariable UUID id) throws DataNotFoundException {
         logger.info("Controller: Received request to get policy [{}]", id);
@@ -63,6 +103,13 @@ public class PolicyController {
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
+    @Operation(
+            summary = "Get policies by customer",
+            description = "Get policies by customer Id",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Policies List found"),
+            }
+    )
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<PolicyResponse>> getByCustomer(@PathVariable UUID customerId) {
         logger.info("Controller: Received request to get policies for customer [{}]", customerId);

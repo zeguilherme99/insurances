@@ -1,5 +1,6 @@
 package com.zagdev.insurances.application.adapters.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 
 import java.math.BigDecimal;
@@ -11,7 +12,9 @@ import java.util.UUID;
 public class PolicyResponse {
 
     private UUID id;
+    @JsonProperty("customer_id")
     private UUID customerId;
+    @JsonProperty("product_id")
     private UUID productId;
     private String category;
     private String salesChannel;
@@ -19,7 +22,9 @@ public class PolicyResponse {
     private PolicyStatus status;
     private Instant createdAt;
     private Instant finishedAt;
+    @JsonProperty("total_monthly_premium_amount")
     private BigDecimal totalMonthlyPremiumAmount;
+    @JsonProperty("insured_amount")
     private BigDecimal insuredAmount;
     private Map<String, BigDecimal> coverages;
     private List<String> assistances;

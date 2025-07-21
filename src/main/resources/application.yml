@@ -10,8 +10,14 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
-  jackson:
-    property-naming-strategy: SNAKE_CASE
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    version: openapi_3_0
+  swagger-ui:
+    path: /documentation.html
+
 server:
   port: 8080
 
