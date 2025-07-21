@@ -3,6 +3,7 @@ package com.zagdev.insurances.domain.dto;
 import com.zagdev.insurances.domain.enums.InsuranceCategory;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.enums.RiskClassification;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.rules.RiskRules;
 
 import java.math.BigDecimal;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.zagdev.insurances.domain.exceptions.ErrorCode.INVALID_STATUS;
 
 public class PolicyDTO {
 
@@ -50,7 +53,11 @@ public class PolicyDTO {
     public PolicyDTO() {
     }
 
-    public void validate(RiskClassification classification) {
+    public void validate(RiskClassification classification) throws InvalidDataException {
+        if (status == PolicyStatus.CANCELLED) {
+            throw new InvalidDataException(INVALID_STATUS);
+        }
+
         boolean approved = RiskRules.isApproved(classification, category, insuredAmount);
 
         if (approved) {
@@ -60,33 +67,33 @@ public class PolicyDTO {
         }
     }
 
-    public void markAsPending() {
+    public void markAsPending() throws InvalidDataException {
         if (status != PolicyStatus.VALIDATED) {
-            throw new UnsupportedOperationException("Policy só pode ser marcada como pendente quando está VALIDATED");
+            throw new InvalidDataException(INVALID_STATUS);
         }
         transitionTo(PolicyStatus.PENDING);
     }
 
-    public void approve() {
+    public void approve() throws InvalidDataException {
         if (status != PolicyStatus.PENDING) {
-            throw new UnsupportedOperationException("Policy só pode ser aprovada quando está PENDING");
+            throw new InvalidDataException(INVALID_STATUS);
         }
 
         transitionTo(PolicyStatus.APPROVED);
         this.finishedAt = Instant.now();
     }
 
-    public void reject() {
+    public void reject() throws InvalidDataException {
         if (status != PolicyStatus.PENDING && status != PolicyStatus.VALIDATED) {
-            throw new UnsupportedOperationException("Policy só pode ser rejeitada se estiver PENDING ou VALIDATED");
+            throw new InvalidDataException(INVALID_STATUS);
         }
         transitionTo(PolicyStatus.REJECTED);
         this.finishedAt = Instant.now();
     }
 
-    public void cancel() {
+    public void cancel() throws InvalidDataException {
         if (status == PolicyStatus.APPROVED || status == PolicyStatus.REJECTED || status == PolicyStatus.CANCELLED) {
-            throw new UnsupportedOperationException("Policy não pode ser cancelada neste status");
+            throw new InvalidDataException(INVALID_STATUS);
         }
         transitionTo(PolicyStatus.CANCELLED);
         this.finishedAt = Instant.now();

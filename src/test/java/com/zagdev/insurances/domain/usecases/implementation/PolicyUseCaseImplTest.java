@@ -2,6 +2,8 @@ package com.zagdev.insurances.domain.usecases.implementation;
 
 import com.zagdev.insurances.domain.dto.PolicyDTO;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
+import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.services.PolicyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateApprove() {
+    void shouldDelegateApprove() throws DataNotFoundException, InvalidDataException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.APPROVED);
         when(policyService.approve(id)).thenReturn(expected);
@@ -58,7 +60,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateCancel() {
+    void shouldDelegateCancel() throws DataNotFoundException, InvalidDataException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.CANCELLED);
         when(policyService.cancel(id)).thenReturn(expected);
@@ -86,7 +88,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateFindById() {
+    void shouldDelegateFindById() throws DataNotFoundException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.VALIDATED);
         when(policyService.findById(id)).thenReturn(expected);
@@ -116,7 +118,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateValidate() {
+    void shouldDelegateValidate() throws DataNotFoundException, InvalidDataException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.VALIDATED);
         when(policyService.validate(id)).thenReturn(expected);
@@ -129,7 +131,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateReject() {
+    void shouldDelegateReject() throws DataNotFoundException, InvalidDataException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.REJECTED);
         when(policyService.reject(id)).thenReturn(expected);

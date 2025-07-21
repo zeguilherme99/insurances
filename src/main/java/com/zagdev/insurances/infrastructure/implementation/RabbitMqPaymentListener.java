@@ -2,6 +2,8 @@ package com.zagdev.insurances.infrastructure.implementation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.usecases.PolicyUseCase;
 import com.zagdev.insurances.infrastructure.dto.PaymentResult;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -19,7 +21,7 @@ public class RabbitMqPaymentListener {
     }
 
     @RabbitListener(queues = "payment-result-queue")
-    public void handlePaymentResult(String payload) throws JsonProcessingException {
+    public void handlePaymentResult(String payload) throws JsonProcessingException, DataNotFoundException, InvalidDataException {
         System.out.println("Recebido do RabbitMQ: " + payload);
 
         PaymentResult result = objectMapper.readValue(payload, PaymentResult.class);

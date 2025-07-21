@@ -6,6 +6,9 @@ import com.zagdev.insurances.domain.enums.InsuranceCategory;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.enums.RiskClassification;
 import com.zagdev.insurances.domain.event.PolicyEvent;
+import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
+import com.zagdev.insurances.domain.exceptions.ErrorCode;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.repositories.PolicyMongoRepository;
 import com.zagdev.insurances.infrastructure.EventPublisher;
 import com.zagdev.insurances.infrastructure.FraudApiClient;
@@ -82,12 +85,10 @@ class PolicyServiceImplTest {
     static class ErrorCase {
         String methodName;
         PolicyStatus initialStatus;
-        String expectedExceptionMsg;
 
-        public ErrorCase(String methodName, PolicyStatus initialStatus, String expectedExceptionMsg) {
+        public ErrorCase(String methodName, PolicyStatus initialStatus) {
             this.methodName = methodName;
             this.initialStatus = initialStatus;
-            this.expectedExceptionMsg = expectedExceptionMsg;
         }
     }
 
@@ -101,19 +102,20 @@ class PolicyServiceImplTest {
 
     static Stream<ErrorCase> provideErrorCases() {
         return Stream.of(
-                new ErrorCase("approve", PolicyStatus.APPROVED, "Policy só pode ser aprovada quando está PENDING"),
-                new ErrorCase("approve", PolicyStatus.REJECTED, "Policy só pode ser aprovada quando está PENDING"),
-                new ErrorCase("cancel", PolicyStatus.CANCELLED, "Policy não pode ser cancelada neste status"),
-                new ErrorCase("cancel", PolicyStatus.APPROVED, "Policy não pode ser cancelada neste status"),
-                new ErrorCase("reject", PolicyStatus.APPROVED, "Policy só pode ser rejeitada se estiver PENDING ou VALIDATED"),
-                new ErrorCase("reject", PolicyStatus.REJECTED, "Policy só pode ser rejeitada se estiver PENDING ou VALIDATED"),
-                new ErrorCase("reject", PolicyStatus.CANCELLED, "Policy só pode ser rejeitada se estiver PENDING ou VALIDATED")
+                new ErrorCase("approve", PolicyStatus.APPROVED),
+                new ErrorCase("approve", PolicyStatus.REJECTED),
+                new ErrorCase("cancel", PolicyStatus.CANCELLED),
+                new ErrorCase("cancel", PolicyStatus.APPROVED),
+                new ErrorCase("reject", PolicyStatus.APPROVED),
+                new ErrorCase("reject", PolicyStatus.REJECTED),
+                new ErrorCase("reject", PolicyStatus.CANCELLED),
+                new ErrorCase("validate", PolicyStatus.CANCELLED)
         );
     }
 
     @ParameterizedTest
     @MethodSource("provideSuccessCases")
-    void shouldTransitionPolicyStatusSuccessfully(SuccessCase testCase) {
+    void shouldTransitionPolicyStatusSuccessfully(SuccessCase testCase) throws DataNotFoundException, InvalidDataException {
         Policy policy = buildPolicy(policyId, testCase.initialStatus);
 
         when(repository.findById(policyId)).thenReturn(Optional.of(policy));
@@ -137,20 +139,19 @@ class PolicyServiceImplTest {
 
         when(repository.findById(policyId)).thenReturn(Optional.of(policy));
 
-        Exception ex = assertThrows(UnsupportedOperationException.class, () -> {
+        Exception ex = assertThrows(InvalidDataException.class, () -> {
             switch (testCase.methodName) {
                 case "approve" -> service.approve(policyId);
                 case "cancel"  -> service.cancel(policyId);
                 case "reject"  -> service.reject(policyId);
+                case "validate"  -> service.validate(policyId);
                 default -> throw new IllegalArgumentException("Método inválido para teste: " + testCase.methodName);
             }
         });
 
         verify(repository, never()).save(any());
         verify(eventPublisher, never()).publish(any());
-        assertTrue(
-                ex.getMessage().toLowerCase().contains(testCase.expectedExceptionMsg.toLowerCase())
-        );
+        assertEquals(ex.getMessage(), ErrorCode.INVALID_STATUS.getMessage());
     }
 
     @Test
@@ -169,7 +170,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldFindPolicyByIdSuccessfully() {
+    void shouldFindPolicyByIdSuccessfully() throws DataNotFoundException {
         Policy policyFound = buildPolicy(policyId, PolicyStatus.APPROVED);
 
         when(repository.findById(policyId)).thenReturn(Optional.of(policyFound));
@@ -186,7 +187,7 @@ class PolicyServiceImplTest {
     void shouldThrowWhenPolicyNotFound() {
         when(repository.findById(policyId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> service.findById(policyId));
+        assertThrows(DataNotFoundException.class, () -> service.findById(policyId));
         verify(repository).findById(policyId);
     }
 
@@ -222,7 +223,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldValidatePolicyAndPublishEventsSuccessfully() {
+    void shouldValidatePolicyAndPublishEventsSuccessfully() throws DataNotFoundException, InvalidDataException {
         UUID requestId = UUID.randomUUID();
         PolicyDTO policyDto = buildPolicyDTO(requestId, PolicyStatus.PENDING);
         Policy policy = buildPolicy(requestId, PolicyStatus.PENDING);
@@ -247,7 +248,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldValidateAndTransitionToRejected() {
+    void shouldValidateAndTransitionToRejected() throws DataNotFoundException, InvalidDataException {
         UUID requestId = UUID.randomUUID();
         Policy policy = buildPolicy(requestId, PolicyStatus.PENDING);
         RiskClassification classification = RiskClassification.HIGH_RISK;

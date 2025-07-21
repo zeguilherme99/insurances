@@ -5,6 +5,9 @@ import com.zagdev.insurances.domain.entity.Policy;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.enums.RiskClassification;
 import com.zagdev.insurances.domain.event.PolicyEvent;
+import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
+import com.zagdev.insurances.domain.exceptions.ErrorCode;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.mapper.PolicyMapper;
 import com.zagdev.insurances.domain.repositories.PolicyMongoRepository;
 import com.zagdev.insurances.domain.services.PolicyService;
@@ -30,7 +33,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO approve(UUID requestId) {
+    public PolicyDTO approve(UUID requestId) throws InvalidDataException, DataNotFoundException {
         PolicyDTO request = getById(requestId);
 
         request.approve();
@@ -39,7 +42,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO cancel(UUID requestId) {
+    public PolicyDTO cancel(UUID requestId) throws InvalidDataException, DataNotFoundException {
         PolicyDTO request = getById(requestId);
 
         request.cancel();
@@ -53,7 +56,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO findById(UUID id) {
+    public PolicyDTO findById(UUID id) throws DataNotFoundException {
         return getById(id);
     }
 
@@ -63,7 +66,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO validate(UUID requestId) {
+    public PolicyDTO validate(UUID requestId) throws InvalidDataException, DataNotFoundException {
         PolicyDTO request = getById(requestId);
 
         RiskClassification classification = fraudClient.getRiskClassification(request.getId(), request.getCustomerId());
@@ -84,7 +87,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO reject(UUID requestId) {
+    public PolicyDTO reject(UUID requestId) throws DataNotFoundException, InvalidDataException {
         PolicyDTO request = getById(requestId);
 
         request.reject();
@@ -92,9 +95,9 @@ public class PolicyServiceImpl implements PolicyService {
         return save(request);
     }
 
-    private PolicyDTO getById(UUID id) {
+    private PolicyDTO getById(UUID id) throws DataNotFoundException {
         Policy policy = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Solicitação não encontrada"));
+                .orElseThrow(() -> new DataNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 
         return PolicyMapper.toDomain(policy);
     }

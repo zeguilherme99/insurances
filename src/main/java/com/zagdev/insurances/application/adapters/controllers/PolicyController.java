@@ -4,7 +4,10 @@ import com.zagdev.insurances.application.adapters.dto.PolicyRequest;
 import com.zagdev.insurances.application.adapters.dto.PolicyResponse;
 import com.zagdev.insurances.application.adapters.mapper.PolicyMapper;
 import com.zagdev.insurances.domain.dto.PolicyDTO;
+import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.domain.usecases.PolicyUseCase;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,25 +32,25 @@ public class PolicyController {
     }
 
     @PatchMapping("/{id}/validate")
-    public ResponseEntity<PolicyResponse> validate(@PathVariable UUID id) {
+    public ResponseEntity<PolicyResponse> validate(@Valid @PathVariable UUID id) throws DataNotFoundException, InvalidDataException {
         PolicyDTO policy = policyUseCase.validate(id);
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
     @PatchMapping("/{id}/approve")
-    public ResponseEntity<PolicyResponse> approve(@PathVariable UUID id) {
+    public ResponseEntity<PolicyResponse> approve(@PathVariable UUID id) throws DataNotFoundException, InvalidDataException {
         PolicyDTO policy = policyUseCase.approve(id);
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<PolicyResponse> cancel(@PathVariable UUID id) {
+    public ResponseEntity<PolicyResponse> cancel(@PathVariable UUID id) throws DataNotFoundException, InvalidDataException {
         PolicyDTO policy = policyUseCase.cancel(id);
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PolicyResponse> getById(@PathVariable UUID id) {
+    public ResponseEntity<PolicyResponse> getById(@Valid @PathVariable UUID id) throws DataNotFoundException {
         PolicyDTO policy = policyUseCase.findById(id);
         return ResponseEntity.ok(PolicyMapper.toResponse(policy));
     }
