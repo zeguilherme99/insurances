@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 import java.util.UUID;
 
 import com.zagdev.insurances.domain.enums.RiskClassification;
+import com.zagdev.insurances.domain.exceptions.ErrorCode;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import com.zagdev.insurances.infrastructure.dto.FraudAnalysisResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +28,7 @@ class FraudApiClientImplTest {
     }
 
     @Test
-    void shouldReturnClassificationWhenSuccess() {
+    void shouldReturnClassificationWhenSuccess() throws InvalidDataException {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
         String expectedUrl = String.format("http://localhost:8081/frauds/%s/customers/%s", orderId, customerId);
@@ -50,8 +52,8 @@ class FraudApiClientImplTest {
 
         when(restTemplate.getForObject(expectedUrl, FraudAnalysisResponse.class)).thenReturn(null);
 
-        Exception ex = assertThrows(IllegalStateException.class, () -> fraudApiClient.getRiskClassification(orderId, customerId));
-        assertTrue(ex.getMessage().toLowerCase().contains("classificação de risco"));
+        Exception ex = assertThrows(InvalidDataException.class, () -> fraudApiClient.getRiskClassification(orderId, customerId));
+        assertEquals(ex.getMessage(), ErrorCode.INVALID_DATA.getMessage());
     }
 
     @Test
@@ -64,7 +66,7 @@ class FraudApiClientImplTest {
 
         when(restTemplate.getForObject(expectedUrl, FraudAnalysisResponse.class)).thenReturn(response);
 
-        Exception ex = assertThrows(IllegalStateException.class, () -> fraudApiClient.getRiskClassification(orderId, customerId));
-        assertTrue(ex.getMessage().toLowerCase().contains("classificação de risco"));
+        Exception ex = assertThrows(InvalidDataException.class, () -> fraudApiClient.getRiskClassification(orderId, customerId));
+        assertEquals(ex.getMessage(), ErrorCode.INVALID_DATA.getMessage());
     }
 }

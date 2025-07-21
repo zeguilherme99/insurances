@@ -4,6 +4,7 @@ import com.zagdev.insurances.domain.dto.PolicyDTO;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
 import com.zagdev.insurances.domain.exceptions.InvalidDataException;
+import com.zagdev.insurances.domain.exceptions.UnexpectedErrorException;
 import com.zagdev.insurances.domain.services.PolicyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateApprove() throws DataNotFoundException, InvalidDataException {
+    void shouldDelegateApprove() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.APPROVED);
         when(policyService.approve(id)).thenReturn(expected);
@@ -60,7 +61,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateCancel() throws DataNotFoundException, InvalidDataException {
+    void shouldDelegateCancel() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.CANCELLED);
         when(policyService.cancel(id)).thenReturn(expected);
@@ -74,7 +75,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateCreate() {
+    void shouldDelegateCreate() throws InvalidDataException, UnexpectedErrorException {
         PolicyDTO request = buildPolicyDTO(null, PolicyStatus.PENDING);
         PolicyDTO expected = buildPolicyDTO(UUID.randomUUID(), PolicyStatus.PENDING);
         when(policyService.create(request)).thenReturn(expected);
@@ -118,7 +119,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateValidate() throws DataNotFoundException, InvalidDataException {
+    void shouldDelegateValidate() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.VALIDATED);
         when(policyService.validate(id)).thenReturn(expected);
@@ -131,7 +132,7 @@ class PolicyUseCaseImplTest {
     }
 
     @Test
-    void shouldDelegateReject() throws DataNotFoundException, InvalidDataException {
+    void shouldDelegateReject() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID id = UUID.randomUUID();
         PolicyDTO expected = buildPolicyDTO(id, PolicyStatus.REJECTED);
         when(policyService.reject(id)).thenReturn(expected);

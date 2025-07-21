@@ -7,15 +7,15 @@ import java.util.UUID;
 
 public class PolicyRequest {
 
-    public UUID customerId;
-    public UUID productId;
-    public String category;
-    public String salesChannel;
-    public String paymentMethod;
-    public BigDecimal totalMonthlyPremiumAmount;
-    public BigDecimal insuredAmount;
-    public Map<String, BigDecimal> coverages;
-    public List<String> assistances;
+    private UUID customerId;
+    private UUID productId;
+    private String category;
+    private String salesChannel;
+    private String paymentMethod;
+    private BigDecimal totalMonthlyPremiumAmount;
+    private BigDecimal insuredAmount;
+    private Map<String, BigDecimal> coverages;
+    private List<String> assistances;
 
     public UUID getCustomerId() {
         return customerId;

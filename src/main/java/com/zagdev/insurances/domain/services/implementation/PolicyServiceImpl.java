@@ -8,11 +8,14 @@ import com.zagdev.insurances.domain.event.PolicyEvent;
 import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
 import com.zagdev.insurances.domain.exceptions.ErrorCode;
 import com.zagdev.insurances.domain.exceptions.InvalidDataException;
+import com.zagdev.insurances.domain.exceptions.UnexpectedErrorException;
 import com.zagdev.insurances.domain.mapper.PolicyMapper;
 import com.zagdev.insurances.domain.repositories.PolicyMongoRepository;
 import com.zagdev.insurances.domain.services.PolicyService;
 import com.zagdev.insurances.infrastructure.EventPublisher;
 import com.zagdev.insurances.infrastructure.FraudApiClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PolicyServiceImpl implements PolicyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PolicyServiceImpl.class);
 
     private final PolicyMongoRepository repository;
     private final FraudApiClient fraudClient;
@@ -33,26 +38,37 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public PolicyDTO approve(UUID requestId) throws InvalidDataException, DataNotFoundException {
+    public PolicyDTO approve(UUID requestId) throws InvalidDataException, DataNotFoundException, UnexpectedErrorException {
+        logger.info("Starting approval for policy [{}]", requestId);
         PolicyDTO request = getById(requestId);
-
+        PolicyStatus previousStatus = request.getStatus();
         request.approve();
+
+        logStatusTransition(requestId, previousStatus, request.getStatus());
 
         return save(request);
     }
 
     @Override
-    public PolicyDTO cancel(UUID requestId) throws InvalidDataException, DataNotFoundException {
+    public PolicyDTO cancel(UUID requestId) throws InvalidDataException, DataNotFoundException, UnexpectedErrorException {
+        logger.info("Starting cancellation for policy [{}]", requestId);
         PolicyDTO request = getById(requestId);
+        PolicyStatus previousStatus = request.getStatus();
 
         request.cancel();
 
+        logStatusTransition(requestId, previousStatus, request.getStatus());
+
         return save(request);
     }
 
     @Override
-    public PolicyDTO create(PolicyDTO request) {
-        return save(request);
+    public PolicyDTO create(PolicyDTO request) throws InvalidDataException, UnexpectedErrorException {
+        logger.info("Service: Creating new policy for customer [{}]", request.getCustomerId());
+        PolicyDTO result = save(request);
+        logger.info("Service: Policy created with id [{}] for customer [{}] (status: [{}])",
+                result.getId(), result.getCustomerId(), result.getStatus());
+        return result;
     }
 
     @Override
@@ -62,54 +78,72 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     public List<PolicyDTO> findByCustomerId(UUID id) {
-        return repository.findByCustomerId(id).stream().map(PolicyMapper::toDomain).collect(Collectors.toList());
+        logger.info("Service: Finding policies for customer [{}]", id);
+        List<PolicyDTO> list = repository.findByCustomerId(id).stream()
+                .map(PolicyMapper::toDomain)
+                .collect(Collectors.toList());
+        logger.info("Service: Found [{}] policies for customer [{}]", list.size(), id);
+        return list;
     }
 
     @Override
-    public PolicyDTO validate(UUID requestId) throws InvalidDataException, DataNotFoundException {
+    public PolicyDTO validate(UUID requestId) throws InvalidDataException, DataNotFoundException, UnexpectedErrorException {
+        logger.info("Service: Validating policy [{}]", requestId);
         PolicyDTO request = getById(requestId);
+        PolicyStatus previousStatus = request.getStatus();
 
         RiskClassification classification = fraudClient.getRiskClassification(request.getId(), request.getCustomerId());
 
         request.validate(classification);
 
-        if (request.getStatus() == PolicyStatus.VALIDATED) {
-            eventPublisher.publish(new PolicyEvent(
-                    request.getId(),
-                    request.getCustomerId(),
-                    request.getStatus()
-            ));
+        logStatusTransition(requestId, previousStatus, request.getStatus());
 
+        if (request.getStatus() == PolicyStatus.VALIDATED) {
+            previousStatus = request.getStatus();
+            publishEvent(request);
             request.markAsPending();
+            logStatusTransition(requestId, previousStatus, request.getStatus());
         }
+
+        logger.info("Service: Policy [{}] validation process finished with status [{}]", requestId, request.getStatus());
 
         return save(request);
     }
 
     @Override
-    public PolicyDTO reject(UUID requestId) throws DataNotFoundException, InvalidDataException {
+    public PolicyDTO reject(UUID requestId) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
+        logger.info("Rejecting policy [{}]", requestId);
         PolicyDTO request = getById(requestId);
+        PolicyStatus previousStatus = request.getStatus();
 
         request.reject();
 
+        logStatusTransition(requestId, previousStatus, request.getStatus());
         return save(request);
     }
 
     private PolicyDTO getById(UUID id) throws DataNotFoundException {
+        logger.info("Service: Finding policy by id [{}]", id);
         Policy policy = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 
+        logger.info("Service: Found policy with id [{}] (status: [{}])", policy.getId(), policy.getStatus());
         return PolicyMapper.toDomain(policy);
     }
 
-    private PolicyDTO save(PolicyDTO request) {
+    private PolicyDTO save(PolicyDTO request) throws InvalidDataException, UnexpectedErrorException {
+        publishEvent(request);
         Policy policy = repository.save(PolicyMapper.toDocument(request));
-
-        publishEvent(policy);
         return PolicyMapper.toDomain(policy);
     }
 
-    private void publishEvent(Policy policy) {
+    private void logStatusTransition(UUID policyId, PolicyStatus from, PolicyStatus to) {
+        if (from != to) {
+            logger.info("Service: Policy [{}] status changed from [{}] to [{}]", policyId, from, to);
+        }
+    }
+
+    private void publishEvent(PolicyDTO policy) throws InvalidDataException, UnexpectedErrorException {
         eventPublisher.publish(new PolicyEvent(
                 policy.getId(),
                 policy.getCustomerId(),

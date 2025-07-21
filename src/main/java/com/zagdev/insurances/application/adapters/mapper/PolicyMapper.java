@@ -11,15 +11,15 @@ public class PolicyMapper {
 
     public static PolicyDTO toDomain(PolicyRequest dto) {
         return new PolicyDTO(
-                dto.customerId,
-                dto.productId,
-                InsuranceCategory.valueOf(dto.category),
-                dto.salesChannel,
-                dto.paymentMethod,
-                dto.totalMonthlyPremiumAmount,
-                dto.insuredAmount,
-                dto.coverages,
-                dto.assistances
+                dto.getCustomerId(),
+                dto.getProductId(),
+                InsuranceCategory.valueOf(dto.getCategory()),
+                dto.getSalesChannel(),
+                dto.getPaymentMethod(),
+                dto.getTotalMonthlyPremiumAmount(),
+                dto.getInsuredAmount(),
+                dto.getCoverages(),
+                dto.getAssistances()
         );
     }
 

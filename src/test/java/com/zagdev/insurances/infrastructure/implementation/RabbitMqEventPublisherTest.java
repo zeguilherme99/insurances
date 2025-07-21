@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.event.PolicyEvent;
+import com.zagdev.insurances.domain.exceptions.ErrorCode;
+import com.zagdev.insurances.domain.exceptions.InvalidDataException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -56,8 +58,8 @@ class RabbitMqEventPublisherTest {
 
         when(objectMapper.writeValueAsString(event)).thenThrow(new JsonProcessingException("erro!") {});
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> publisher.publish(event));
-        assertTrue(ex.getMessage().toLowerCase().contains("serializar evento"));
+        Exception ex = assertThrows(InvalidDataException.class, () -> publisher.publish(event));
+        assertEquals(ex.getMessage(), ErrorCode.INVALID_DATA.getMessage());
         verify(objectMapper).writeValueAsString(event);
         verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
     }

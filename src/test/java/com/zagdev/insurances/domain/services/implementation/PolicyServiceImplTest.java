@@ -9,6 +9,7 @@ import com.zagdev.insurances.domain.event.PolicyEvent;
 import com.zagdev.insurances.domain.exceptions.DataNotFoundException;
 import com.zagdev.insurances.domain.exceptions.ErrorCode;
 import com.zagdev.insurances.domain.exceptions.InvalidDataException;
+import com.zagdev.insurances.domain.exceptions.UnexpectedErrorException;
 import com.zagdev.insurances.domain.repositories.PolicyMongoRepository;
 import com.zagdev.insurances.infrastructure.EventPublisher;
 import com.zagdev.insurances.infrastructure.FraudApiClient;
@@ -115,7 +116,7 @@ class PolicyServiceImplTest {
 
     @ParameterizedTest
     @MethodSource("provideSuccessCases")
-    void shouldTransitionPolicyStatusSuccessfully(SuccessCase testCase) throws DataNotFoundException, InvalidDataException {
+    void shouldTransitionPolicyStatusSuccessfully(SuccessCase testCase) throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         Policy policy = buildPolicy(policyId, testCase.initialStatus);
 
         when(repository.findById(policyId)).thenReturn(Optional.of(policy));
@@ -134,7 +135,7 @@ class PolicyServiceImplTest {
 
     @ParameterizedTest
     @MethodSource("provideErrorCases")
-    void shouldThrowExceptionOnInvalidTransition(ErrorCase testCase) {
+    void shouldThrowExceptionOnInvalidTransition(ErrorCase testCase) throws InvalidDataException, UnexpectedErrorException {
         Policy policy = buildPolicy(policyId, testCase.initialStatus);
 
         when(repository.findById(policyId)).thenReturn(Optional.of(policy));
@@ -155,7 +156,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldCreatePolicySuccessfully() {
+    void shouldCreatePolicySuccessfully() throws InvalidDataException, UnexpectedErrorException {
         PolicyDTO dtoToSave = buildPolicyDTO(null, PolicyStatus.PENDING);
         Policy policySaved = buildPolicy(policyId, PolicyStatus.PENDING);
 
@@ -223,7 +224,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldValidatePolicyAndPublishEventsSuccessfully() throws DataNotFoundException, InvalidDataException {
+    void shouldValidatePolicyAndPublishEventsSuccessfully() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID requestId = UUID.randomUUID();
         PolicyDTO policyDto = buildPolicyDTO(requestId, PolicyStatus.PENDING);
         Policy policy = buildPolicy(requestId, PolicyStatus.PENDING);
@@ -248,7 +249,7 @@ class PolicyServiceImplTest {
     }
 
     @Test
-    void shouldValidateAndTransitionToRejected() throws DataNotFoundException, InvalidDataException {
+    void shouldValidateAndTransitionToRejected() throws DataNotFoundException, InvalidDataException, UnexpectedErrorException {
         UUID requestId = UUID.randomUUID();
         Policy policy = buildPolicy(requestId, PolicyStatus.PENDING);
         RiskClassification classification = RiskClassification.HIGH_RISK;
