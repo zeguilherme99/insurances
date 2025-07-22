@@ -8,7 +8,7 @@ import com.zagdev.insurances.application.adapters.dto.PolicyResponse;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.event.PolicyEvent;
 import com.zagdev.insurances.infrastructure.dto.MessageResult;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -45,8 +45,8 @@ class PolicyRabbitListenerIntegrationTest {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @BeforeEach
-    void setUp() {
+    @AfterEach
+    void tearDown() {
         while (rabbitTemplate.receive("policy-status-queue") != null) {
         }
         while (rabbitTemplate.receive("payment-result-queue") != null) {

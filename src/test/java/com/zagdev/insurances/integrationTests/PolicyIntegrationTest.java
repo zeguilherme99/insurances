@@ -9,7 +9,7 @@ import com.zagdev.insurances.domain.enums.InsuranceCategory;
 import com.zagdev.insurances.domain.enums.PolicyStatus;
 import com.zagdev.insurances.domain.enums.RiskClassification;
 import com.zagdev.insurances.domain.event.PolicyEvent;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,10 +28,11 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,8 +58,8 @@ class PolicyIntegrationTest {
         return req;
     }
 
-    @BeforeEach
-    void setUp() {
+    @AfterEach
+    void tearDown() {
         while (rabbitTemplate.receive("policy-status-queue") != null) {
             //clear qeue
         }
@@ -269,8 +270,6 @@ class PolicyIntegrationTest {
         mockMvc.perform(get("/api/v1/policies/" + randomId))
                 .andExpect(status().isNotFound());
     }
-
-
 
     private List<PolicyEvent> getPolicyRabbitMqEvents() throws JsonProcessingException {
         List<PolicyEvent> policyEvents = new ArrayList<>();
