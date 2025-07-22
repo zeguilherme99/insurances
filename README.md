@@ -8,7 +8,6 @@
 * [Documentação das APIs](#documentação-das-apis)
 * [Mensageria & Integrações](#mensageria--integrações)
 * [Testes e Cobertura](#testes-e-cobertura)
-* [Premissas e Decisões](#premissas-e-decisões)
 * [Possíveis Melhorias Futuras](#possíveis-melhorias-futuras)
 
 ---
@@ -41,8 +40,6 @@ A arquitetura é orientada a domínio (DDD) e eventos, com testes unitários e d
 * Maven
 
 ### Buildando o JAR
-
-Caso não queira buildar dentro do próprio Docker Compose:
 
 ```bash
 ./mvnw clean package
@@ -179,14 +176,6 @@ O projeto utiliza **RabbitMQ** para publicar eventos de mudança de status da ap
   ```
 ### Relatório de Cobertura
 ![Cobertura de Testes - JaCoCo](src/main/resources/static/coverage.png)
-
----
-
-## Premissas e Decisões
-
-* Persistência em MongoDB, mas arquitetura desacoplada permite uso de outros bancos.
-* Integrações externas simuladas para fácil reprodutibilidade e testes.
-* Documentação sempre disponível via Swagger.
 
 ---
 
